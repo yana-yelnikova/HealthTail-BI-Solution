@@ -36,4 +36,100 @@ WITH
       breed,           -- Standardized breed from 'cleaned_breed'.
       patient_name     -- Patient's name, passed through from 'cleaned_breed'.
     FROM
-      cleaned_breed      -- Input for
+      cleaned_breed      -- Input for this CTE is the result of 'cleaned_breed'.
+  )
+-- Final SELECT statement to construct the 'registration_clean' table.
+-- It joins the original 'reg_cards' table with the 'cleaned_phone' CTE
+-- to combine original uncleaned fields with the newly cleaned ones.
+SELECT
+  r.patient_id,                 -- Original patient ID.
+  r.owner_id,                   -- Original owner ID.
+  r.owner_name,                 -- Original owner's name.
+  r.pet_type,                   -- Original pet type.
+  cp.breed,                     -- Standardized breed from 'cleaned_phone' CTE.
+  UPPER(cp.patient_name) AS patient_name, -- Patient's name from 'cleaned_phone' CTE, converted to uppercase.
+  r.gender,                     -- Original pet gender.
+  r.patient_age,                -- Original patient age.
+  r.date_registration,          -- Original date of registration.
+  cp.owner_phone                -- Standardized owner's phone number from 'cleaned_phone' CTE.
+FROM
+  `verdant-bruin-457710-r2.HealthTail.reg_cards` r -- Alias the original table as 'r'.
+JOIN
+  cleaned_phone cp ON r.patient_id = cp.patient_id; -- Join based on 'patient_id' to link original records with their cleaned 'breed', 'patient_name', and 'owner_phone'.
+
+
+-- This SQL script creates a new table named 'med_audit' in the 'HealthTail' dataset.
+-- The purpose of this table is to track the monthly movement of medications,
+-- by consolidating both purchases (stock in) from the 'invoices' table
+-- and medication usage during visits (stock out) from the 'visits' table.
+CREATE OR REPLACE TABLE `verdant-bruin-457710-r2.HealthTail.med_audit` AS
+SELECT
+    month,           -- The month of the transaction (formatted as YYYY-MM-01).
+    med_name,        -- Standardized name of the medication.
+    total_packs,     -- Total number of medication packs (either purchased or used).
+    total_value,     -- Total monetary value associated with the packs (cost of purchase or cost of medication used).
+    stock_movement   -- Type of stock movement: 'stock in' for purchases, 'stock out' for usage.
+  FROM
+    ( -- This subquery defines and then combines monthly medication inflows (purchases) and outflows (usage).
+      WITH
+        -- CTE 1: invoices_monthly
+        -- This CTE aggregates data from the 'invoices' table to calculate
+        -- total medications purchased (stock in) per month for each medication.
+        invoices_monthly AS (
+          SELECT
+            FORMAT_DATE('%Y-%m-01', month_invoice) AS month, -- Standardize the invoice month to the first day of that month.
+            -- Standardize medication names for consistency across different data sources.
+            CASE
+              WHEN med_name = 'Clavamox (Amoxicillin + Clavulanic)' THEN 'Clavamox (Amoxicillin/Clavulanic)'
+              WHEN med_name = 'Arthroflex' THEN 'ArthriFlex'
+              ELSE med_name
+            END AS med_name,
+            SUM(packs) AS total_packs,       -- Calculate the total number of packs purchased for each medication per month.
+            SUM(total_price) AS total_value,   -- Calculate the total cost of these purchases.
+            'stock in' AS stock_movement       -- Label these transactions as 'stock in' (medication received).
+          FROM
+            `verdant-bruin-457710-r2.HealthTail.invoices` -- Source table containing medication purchase invoices.
+          GROUP BY
+            month, med_name                  -- Group results by month and standardized medication name for aggregation.
+        ),
+        -- CTE 2: visits_monthly
+        -- This CTE aggregates data from the 'visits' table to calculate
+        -- total medications used (stock out) per month for each medication prescribed.
+        visits_monthly AS (
+          SELECT
+            FORMAT_DATE('%Y-%m-01', CAST(visit_datetime AS DATE)) AS month, -- Standardize the visit month (from visit_datetime) to the first day of that month.
+            -- Standardize medication names (from prescriptions) to match the naming in invoices_monthly.
+            CASE
+              WHEN med_prescribed = 'Clavamox (Amoxicillin + Clavulanic)' THEN 'Clavamox (Amoxicillin/Clavulanic)'
+              WHEN med_prescribed = 'Arthroflex' THEN 'ArthriFlex'
+              ELSE med_prescribed
+            END AS med_name,
+            SUM(med_dosage) AS total_packs,    -- Calculate total packs used (med_dosage represents share of a full package).
+            SUM(med_cost) AS total_value,      -- Calculate the total cost of medications prescribed/used during visits.
+            'stock out' AS stock_movement      -- Label these transactions as 'stock out' (medication dispensed/used).
+          FROM
+            `verdant-bruin-457710-r2.HealthTail.visits` -- Source table containing patient visit records.
+          GROUP BY
+            month, med_name                  -- Group results by month and standardized medication name for aggregation.
+        )
+      -- Combine the aggregated purchase data (stock in) and usage data (stock out).
+      SELECT
+        month,
+        med_name,
+        total_packs,
+        total_value,
+        stock_movement
+      FROM
+        invoices_monthly -- Select all records from the monthly purchases CTE.
+      UNION ALL -- Combine with all records from the monthly usage CTE.
+                -- UNION ALL is used because 'stock in' and 'stock out' records for the same month/medication are distinct events.
+      SELECT
+        month,
+        med_name,
+        total_packs,
+        total_value,
+        stock_movement
+      FROM
+        visits_monthly -- Select all records from the monthly usage CTE.
+    )
+;
