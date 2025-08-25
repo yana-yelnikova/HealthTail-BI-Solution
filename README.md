@@ -53,6 +53,7 @@ An interactive Looker Studio dashboard was developed to visualize key operationa
 This repository is organized as follows:
 
 * **/data/raw**: Contains the source `.csv` files used for the analysis.
+* **/data/processed**: Contains the final datasets created by the SQL scripts (e.g., `med_audit.csv`).
 * **/docs**: Contains all project documentation, including the detailed analysis (`Dashboard_Analysis.md`), architecture diagram, and screenshots.
 * **/sql/1_schemas**: (Currently unused) Intended for DDL scripts for table creation.
 * **/sql/2_transformations**: Contains the main ETL script (`01_clean_and_aggregate_data.sql`) for cleaning, transforming, and creating all necessary tables.
