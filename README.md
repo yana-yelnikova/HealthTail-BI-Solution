@@ -24,9 +24,6 @@ HealthTail faced two key challenges that this project addresses:
 * **Cloud Provider:** Google Cloud Platform (GCP)
 * **Data Warehouse:** Google BigQuery
 * **BI & Visualization:** Looker Studio
-* **Data Source:** Raw `.csv` files
-
-### Architecture Diagram
 
 The project follows a modern data stack architecture where data flows from the source files to the final dashboard.
 
@@ -34,17 +31,23 @@ The project follows a modern data stack architecture where data flows from the s
 
 ---
 
-## 📊 Dashboard Analysis & Key Findings
+## 📊 Data Model & Solution
 
-An interactive Looker Studio dashboard was developed to visualize key operational metrics and disease trends. The dashboard provides insights into the most common diagnoses by pet type and breed, analyzes treatment costs versus disease frequency, and tracks trends over time.
+To address the business problems, a data pipeline was created to produce two key analytical tables:
 
-> **[➡️ Click here for a detailed breakdown of the dashboard and key findings](docs/Dashboard_Analysis.md)**
+1.  **`med_audit` Table:** This table directly solves the **Auditing Medication Expenses** problem. It consolidates data from purchases (`invoices`) and patient usage (`visits`) to create a comprehensive ledger of all medication movements (`stock in` / `stock out`), tracking total packs and costs per month.
+
+2.  **`visits_cleaned` Table:** This table is the foundation for solving the **Monitoring Disease Trends** problem. It enriches the raw `visits` data by joining it with cleaned patient information from `registration_clean`. This creates a unified view containing diagnoses, patient types, and breeds in a single place, making it the perfect data source for the Looker Studio dashboard.
 
 ---
 
-## 🔗 Live Dashboard
+## 🔗 Live Dashboard & Detailed Analysis
 
-> **[➡️ View the Interactive Looker Studio Report](https://lookerstudio.google.com/reporting/2ee942e6-b8f9-43f1-98a1-f98f33bad7d3)**
+An interactive Looker Studio dashboard was developed to visualize the findings from the `visits_cleaned` table.
+
+> **[➡️ View the Interactive Looker Studio Report](СЮДА_ВСТАВЬТЕ_ВАШУ_ССЫЛКУ)**
+
+> **[➡️ Click here for a detailed breakdown of the dashboard and key findings](docs/Dashboard_Analysis.md)**
 
 ---
 
