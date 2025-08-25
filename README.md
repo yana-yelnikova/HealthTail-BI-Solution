@@ -45,3 +45,16 @@ An interactive Looker Studio dashboard was developed to visualize key operationa
 ## 🔗 Live Dashboard
 
 > **[➡️ View the Interactive Looker Studio Report](https://lookerstudio.google.com/reporting/2ee942e6-b8f9-43f1-98a1-f98f33bad7d3)**
+
+---
+
+## 📂 Repository Structure
+
+This repository is organized as follows:
+
+* **/data/raw**: Contains the source `.csv` files used for the analysis.
+* **/docs**: Contains all project documentation, including the detailed analysis (`Dashboard_Analysis.md`), architecture diagram, and screenshots.
+* **/sql/1_schemas**: (Currently unused) Intended for DDL scripts for table creation.
+* **/sql/2_transformations**: Contains the main ETL script (`01_clean_and_aggregate_data.sql`) for cleaning, transforming, and creating all necessary tables.
+* **/sql/3_analysis**: Contains the analytical queries (`02_business_questions_analysis.sql`) used to answer business questions.
+* **README.md**: Project overview (this file).
