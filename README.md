@@ -33,11 +33,13 @@ The project follows a modern data stack architecture where data flows from the s
 
 ## 📊 Data Model & Solution
 
-To address the business problems, a data pipeline was created to produce two key analytical tables:
+To address the business problems, the data pipeline creates two core tables from the raw data:
 
-1.  **`med_audit` Table:** This table directly solves the **Auditing Medication Expenses** problem. It consolidates data from purchases (`invoices`) and patient usage (`visits`) to create a comprehensive ledger of all medication movements (`stock in` / `stock out`), tracking total packs and costs per month.
+1.  **`registration_clean` Table:** This table provides a clean and standardized view of all patient and owner information.
 
-2.  **`visits_cleaned` Table:** This table is the foundation for solving the **Monitoring Disease Trends** problem. It enriches the raw `visits` data by joining it with cleaned patient information from `registration_clean`. This creates a unified view containing diagnoses, patient types, and breeds in a single place, making it the perfect data source for the Looker Studio dashboard.
+2.  **`med_audit` Table:** This table directly solves the **Auditing Medication Expenses** problem. It consolidates data from purchases and patient usage to create a comprehensive ledger of all medication movements (`stock in` / `stock out`).
+
+The **Monitoring Disease Trends** problem is addressed by the interactive Looker Studio dashboard, which connects to the project's data sources to allow for segmented analysis.
 
 ---
 
